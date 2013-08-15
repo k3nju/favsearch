@@ -3,6 +3,7 @@
 
 import sys;
 import sqlite3;
+import contextlib;
 
 import common;
 import sql;
@@ -23,22 +24,43 @@ class Database():
 		self.__conn.execute( "pragma foreign_key = on;" );
 		
 	def close( self ):
+		"""Close database connection"""
+
 		if self.__conn != None:
 			self.__conn.close();
 			self.__conn = None;
 	
 	def create_tables( self ):
+		"""Create tables
+
+		create tables in database file.
+		if database file and tables already exist, this method will be failed.
+		"""
+
 		for name in dir( sql ):
 			if name.lower().endswith( "table" ) == False:
 				continue;
 			
 			self.__conn.execute( getattr( sql, name ) );
 
+	def has_inserted( self, tweet ):
+		"""Return True if tweet has been inserted, or return False
+
+		tweet is object of common.TweetEntity.
+		"""
+		
+		with contextlib.closing( self.__conn.execute( sql.HAS_INSERTED, ( tweet.tweet_id, ) ) ) as cur:
+			if len( cur.fetchall() ) == 1:
+				return True;
+			else:
+				return False;
+	
 	def insert( self, tweet ):
 		"""Insert tweet entity.
 		
 		tweet is object of common.TweetEntity.
 		"""
+		
 		self.__conn.execute( "BEGIN" );
 		try:
 			self.__insert_users( tweet.user_id, tweet.user_name );
@@ -52,49 +74,63 @@ class Database():
 			self.__conn.commit();
 
 	def __insert_users( self, user_id, user_name ):
-		self.__conn.execute( sql.ADD_USER, ( user_id, user_name, user_id ) );
-
+		return self.__execute_insert( sql.ADD_USER, ( user_id, user_name, user_id ) );
+	
 	def __insert_tweet( self, tweet_id, user_id, content ):
-		self.__conn.execute( sql.ADD_TWEET, ( tweet_id, content, user_id, tweet_id ) );
+		return self.__execute_insert( sql.ADD_TWEET, ( tweet_id, content, user_id, tweet_id ) );
 
 	def __insert_fts( self, tweet_id, words ):
-		self.__conn.execute( sql.ADD_FTS, ( " ".join( words ), tweet_id ) );
+		return self.__execute_insert( sql.ADD_FTS, ( " ".join( words ), tweet_id ) );
 
 	def __insert_urls( self, tweet_id, urls ):
+		rowcount = 0;
 		for url in urls:
-			self.__conn.execute( sql.ADD_URL, ( url, tweet_id, url ) );
+			rowcount += self.__execute_insert( sql.ADD_URL, ( url, tweet_id, url ) );
+		return rowcount;
+
+	def __execute_insert( self, sql, args ):
+		with contextlib.closing( self.__conn.execute( sql, args ) ) as cur:
+			return cur.rowcount;
 
 	def search( self, words ):
+		"""Search tweets by words
+
+		words is array of word to be searched by using full text search.
+		"""
 		yield from self.__execute_sql(
 			sql.SEARCH,
 			( " ".join( words ), )
 		);
 	
 	def search_by_user_name( self, words, user_name ):
-		yield from self.__execute_sql(
+		"""Search tweets by words from specified user's tweets"""
+
+		yield from self.__execute_select(
 			sql.SEARCH_BY_USER_NAME,
 			( user_name, " ".join( words ) )
 			);
 	
 	def listup( self ):
-		yield from self.__execute_sql( sql.LISTUP );
+		"""List up all tweets"""
+
+		yield from self.__execute_select( sql.LISTUP );
 
 	def listup_by_user_name( self, user_name ):
-		yield from self.__execute_sql(
+		"""List up all specified user's tweets"""
+		
+		yield from self.__execute_select(
 			sql.LISTUP_BY_USER_NAME,
 			( user_name, )
 		);
-	
-	def __execute_sql( self, sql, args = () ):
-		cur = self.__conn.cursor();
-		cur.execute( sql, args );
-		for rec in cur.fetchall():
-			yield common.SearchResultEntity(
-				rec[0],
-				rec[1]
-				);
-		cur.close();
 
+	def __execute_select( self, sql, args = () ):
+		with contextlib.closing( self.__conn.execute( sql, args ) ) as cur:
+			for rec in cur.fetchall():
+				 yield common.SearchResultEntity(
+					 rec[0],
+					 rec[1]
+				 );
+	
 if __name__ == "__main__":
 	import os;
 	config.DB_FILE = "/tmp/test.db";

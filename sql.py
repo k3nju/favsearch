@@ -3,7 +3,7 @@
 
 """SQL statements module
 
-SQL statements used by db.py is written here.
+SQL statements used by db.py are written here.
 """
 
 
@@ -36,6 +36,15 @@ create table urls(
   tweet_id integer not null,
   url text not null
 );
+""";
+
+HAS_INSERTED = """
+select
+  1
+from
+  tweets
+where
+  tweet_id = ?;
 """;
 
 ADD_USER = """
@@ -128,7 +137,7 @@ inner join
 on
   c.user_id = b.user_id
 where
-  a.words match ?
+  a.words match ?;
 """;
 
 SEARCH_BY_USER_NAME = """
@@ -159,7 +168,7 @@ from
 inner join
   users b
 on
-  b.user_id = a.user_id
+  b.user_id = a.user_id;
 """;
 
 LISTUP_BY_USER_NAME = """
@@ -173,5 +182,5 @@ inner join
 on
   b.user_id = a.user_id
 where
-  a.user_name = ?
+  a.user_name = ?;
 """;

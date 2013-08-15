@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+# -*- coding:utf-8 -*-
+
+# twitter
+OAUTH_FILE      = "DIRECTORY PATH TO .twitter_oauth";
+CONSUMER_KEY	= "YOUR CONSUMER KEY";
+CONSUMER_SECRET = "YOUR CONSUMER SECRET";
+
+# yahoo
+APP_ID = "YOUR APPLICATION ID";
+

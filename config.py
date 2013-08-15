@@ -7,7 +7,7 @@ import privates;
 
 NOTICE: Important configuration data are imported from privates.py.
         You need to write own your privates.py.
-        See detail in privates.py.
+        See detail in privates.py.example.
 """
 
 

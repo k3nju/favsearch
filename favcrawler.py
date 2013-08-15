@@ -18,10 +18,12 @@ def print_error( *msgs ):
 def main( page_no, count ):
 	reader = favreader.FavReader();
 	with contextlib.closing( db.Database() ) as fav_db:
-		for page_no in range( 0, page_no ):
+		for page_no in range( 1, page_no + 1 ):
 			inserted_count = 0;
 			for tweet_ent in reader.read( page_no, count ):
 				try:
+					if fav_db.has_inserted( tweet_ent ):
+						continue;
 					fav_db.insert( tweet_ent );
 					inserted_count += 1;
 				except Exception as E:
