@@ -13,6 +13,7 @@ TweetEntity = namedtuple(
 		"content",
 		"words", # words extracted from tweet for full text search
 		"urls",  # urls extracted from tweet
+		"tweeted_at",
 	]
 );
 

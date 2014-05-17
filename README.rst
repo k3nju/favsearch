@@ -1,4 +1,3 @@
-NOTE: this tool is heavily under the development.
 
 favsearch
 =========

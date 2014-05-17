@@ -24,4 +24,11 @@ build/
 old/
 test/
 dummy_install
+distribute-0.6.39.tar.gz
+distribute_setup.py
+env/
+get-pip.py
+pyvenv.cfg
 privates.py
+
+

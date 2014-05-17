@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import datetime;
 import twitter;
 
 import common;
@@ -24,14 +25,26 @@ class FavReader():
 			domain = "api.twitter.com"
 			);
 
+	def debug( self ):
+		page_no = 1;
+		count = 1;
+		tweets = self.__tw.favorites.list( page = page_no, count = count );
+		from pprint import pprint;
+		pprint( tweets[0] );
+
 	def read( self, page_no, count ):
 		tweets = self.__tw.favorites.list( page = page_no, count = count );
 		for tweet in tweets:
 			# extract TweetEntity members from json response
-			user_id	  = tweet[ "user" ][ "id" ]          # user_id
-			user_name = tweet[ "user" ][ "screen_name" ] # user_name
-			tweet_id  = tweet[ "id" ]                    # tweet_id
-			content	  = tweet[ "text" ]                  # content
+			user_id	   = tweet[ "user" ][ "id" ]          # user_id
+			user_name  = tweet[ "user" ][ "screen_name" ] # user_name
+			tweet_id   = tweet[ "id" ]                    # tweet_id
+			content	   = tweet[ "text" ]                  # content
+			# tweeted_at
+			tweeted_at = datetime.datetime.strptime(
+				tweet[ "created_at" ],
+				"%a %b %d %H:%M:%S +0000 %Y"
+				);
 			# urls
 			urls      = set(
 				[ i[ "url" ] for i in tweet[ "entities" ][ "urls" ] ]
@@ -47,7 +60,8 @@ class FavReader():
 				tweet_id,
 				content,
 				words,
-				urls
+				urls,
+				tweeted_at
 				);
 
 	@staticmethod

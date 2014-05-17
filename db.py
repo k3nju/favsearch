@@ -64,7 +64,7 @@ class Database():
 		self.__conn.execute( "BEGIN" );
 		try:
 			self.__insert_users( tweet.user_id, tweet.user_name );
-			self.__insert_tweet( tweet.tweet_id, tweet.user_id, tweet.content );
+			self.__insert_tweet( tweet.tweet_id, tweet.user_id, tweet.content, tweet.tweeted_at );
 			self.__insert_fts( tweet.tweet_id, tweet.words );
 			self.__insert_urls( tweet.tweet_id, tweet.urls );
 		except Exception as E:
@@ -76,8 +76,8 @@ class Database():
 	def __insert_users( self, user_id, user_name ):
 		return self.__execute_insert( sql.ADD_USER, ( user_id, user_name, user_id ) );
 	
-	def __insert_tweet( self, tweet_id, user_id, content ):
-		return self.__execute_insert( sql.ADD_TWEET, ( tweet_id, content, user_id, tweet_id ) );
+	def __insert_tweet( self, tweet_id, user_id, content, tweeted_at ):
+		return self.__execute_insert( sql.ADD_TWEET, ( tweet_id, content, tweeted_at, user_id, tweet_id ) );
 
 	def __insert_fts( self, tweet_id, words ):
 		return self.__execute_insert( sql.ADD_FTS, ( " ".join( words ), tweet_id ) );
@@ -97,7 +97,7 @@ class Database():
 
 		words is array of word to be searched by using full text search.
 		"""
-		yield from self.__execute_sql(
+		yield from self.__execute_select(
 			sql.SEARCH,
 			( " ".join( words ), )
 		);
@@ -142,6 +142,8 @@ if __name__ == "__main__":
 
 	import contextlib;
 	with contextlib.closing( db ) as db:
+		from datetime import datetime;
+		now = datetime.now();
 		import common;
 		db.insert(
 			common.TweetEntity(
@@ -150,7 +152,8 @@ if __name__ == "__main__":
 				1,
 				"Hello World http://example.com",
 				[ "Hello", "World" ],
-				[ "http://example.com" ]
+				[ "http://example.com" ],
+				now
 			)
 		);
 		db.insert(
@@ -160,7 +163,8 @@ if __name__ == "__main__":
 				2,
 				"The quick brown jumps over the lazy dog http://example.com http://example.com http://example2.com",
 				"The quick brown jumps over the lazy dog".split(),
-				"http://example.com http://example.com http://example2.com".split()
+				"http://example.com http://example.com http://example2.com".split(),
+				now
 			)
 		);
 		db.insert(
@@ -170,7 +174,8 @@ if __name__ == "__main__":
 				3,
 				"stay hungry, stay foolish",
 				"stay hungry stay foolish".split(),
-				[]
+				[],
+				now
 			)
 		);
 		db.insert(
@@ -180,7 +185,8 @@ if __name__ == "__main__":
 				4,
 				"quick and lazy",
 				"quick and lazy".split(),
-				[]
+				[],
+				now
 			)
 		);
 		

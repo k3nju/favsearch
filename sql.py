@@ -16,9 +16,10 @@ create table users(
 
 TWEETS_TABLE = """
 create table tweets(
-  tweet_id integer primary key,
-  user_id  integer not null,
-  content  text    not null,
+  tweet_id   integer  primary key,
+  user_id    integer  not null,
+  content    text     not null,
+  tweeted_at datetime not null,
   foreign key( user_id ) references users( user_id )
 );
 """;
@@ -65,9 +66,9 @@ where
 
 ADD_TWEET = """
 insert into
-  tweets( tweet_id, user_id, content )
+  tweets( tweet_id, user_id, content, tweeted_at )
 select
-  ?, a.user_id, ?
+  ?, a.user_id, ?, ?
 from
   users a
 where
@@ -137,7 +138,9 @@ inner join
 on
   c.user_id = b.user_id
 where
-  a.words match ?;
+  a.words match ?
+order by
+  tweeted_at desc;
 """;
 
 SEARCH_BY_USER_NAME = """
@@ -156,7 +159,9 @@ on
   c.user_id = b.user_id
   and c.user_name = ?
 where
-  a.words match ?;
+  a.words match ?
+order by
+  tweeted_at desc;
 """;
 
 LISTUP = """
@@ -168,7 +173,9 @@ from
 inner join
   users b
 on
-  b.user_id = a.user_id;
+  b.user_id = a.user_id
+order by
+  tweeted_at desc;
 """;
 
 LISTUP_BY_USER_NAME = """
@@ -182,5 +189,7 @@ inner join
 on
   b.user_id = a.user_id
 where
-  a.user_name = ?;
+  a.user_name = ?
+order by
+  tweeted_at desc;
 """;
