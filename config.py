@@ -12,7 +12,7 @@ NOTICE: Important configuration data are imported from privates.py.
 
 
 """SQLite3 database file"""
-DB_FILE = "/usr/local/tmp/tw.db";
+DB_FILE = "/usr/local/db/tw.db";
 
 # imported from privates
 

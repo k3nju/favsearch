@@ -15,17 +15,26 @@ import config;
 def print_error( *msgs ):
 	print( "[!] " + " ".join( [ str( i ) for i in msgs ] ), file = sys.stderr );
 
-def main( page_no, count ):
+def main( page_no, count, debug ):
 	reader = favreader.FavReader();
+	if debug:
+		print("reader instantiated")
 	with contextlib.closing( db.Database() ) as fav_db:
+		if debug:
+			print("read page range: {} {}".format( 1, page_no + 1 ))
+			
 		for page_no in range( 1, page_no + 1 ):
 			inserted_count = 0;
 			for tweet_ent in reader.read( page_no, count ):
 				try:
 					if fav_db.has_inserted( tweet_ent ):
+						if debug:
+							print("passed: {}".format(tweet_ent.tweet_id))
 						continue;
 					fav_db.insert( tweet_ent );
 					inserted_count += 1;
+					if debug:
+							print("inserted: {}".format(tweet_ent.tweet_id))
 				except Exception as E:
 					traceback.print_exc();
 					print_error(
@@ -51,6 +60,10 @@ if __name__ == "__main__":
 		"--init", dest = "init", action = "store_true", default = False,
 		help = "Create database file."
 		);
+	parser.add_argument(
+		"--debug", dest = "debug", action = "store_true", default = False,
+		help = "Output debug message."
+		);
 
 	args = parser.parse_args();
 	
@@ -61,5 +74,6 @@ if __name__ == "__main__":
 		with contextlib.closing( db.Database() ) as fav_db:
 			fav_db.create_tables();
 		sys.exit();
+
+	main( args.page_no, args.count, debug = args.debug );
 	
-	main( args.page_no, args.count );
